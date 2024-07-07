@@ -7,6 +7,8 @@ app = Flask(__name__)                                                       # th
 proxied = FlaskBehindProxy(app)  
 app.config['SECRET_KEY'] = '131a00f696ccda7414d2354a43800ba8'
 
+# Disable redirect interception
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 # Enable debug mode
 app.debug = True
 
