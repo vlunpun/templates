@@ -2,31 +2,59 @@ from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm
 from flask_behind_proxy import FlaskBehindProxy
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_sqlalchemy import SQLAlchemy
 
+# Gets name of the .py file so Flask knows it's name
 app = Flask(__name__)                                                       # this gets the name of the file so Flask knows it's name
 proxied = FlaskBehindProxy(app)  
 app.config['SECRET_KEY'] = '131a00f696ccda7414d2354a43800ba8'
 
+# Configure database 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db = SQLAlchemy(app)
+
+# User table represented as an object
+class User(db.Model):
+   id = db.Column(db.Integer, primary_key=True)
+   username = db.Column(db.String(20), unique=True, nullable=False)
+   email = db.Column(db.String(120), unique=True, nullable=False)
+   password = db.Column(db.String(60), nullable=False)
+   
+   def __repr__(self):
+        return f"User('{self.username}', '{self.email}')"
+
+with app.app_context():
+    db.create_all()
+
 # Disable redirect interception
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+
 # Enable debug mode
 app.debug = True
 
 # Set up the Flask-DebugToolbar
 toolbar = DebugToolbarExtension(app)
 
+
+#Tells you the URL the method below is related to
+@app.route("/")
+def home():
+    #prints HTML to the webpage
+    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+
 @app.route("/register", methods=['GET', 'POST'])                            # this tells you the URL the method below is related to
 def register():
     form = RegistrationForm()
     if form.validate_on_submit(): # checks if entries are valid
+        # sends form data to database 
+        user = User(username=form.username.data, email=form.email.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        # flashes a sucess message after account is created
         flash(f'Account created for {form.username.data}!', 'success')
         return redirect(url_for('home')) # if so - send to home page
     return render_template('register.html', title='Register', form=form)    # this prints HTML to the webpage
 
-@app.route("/")
-def home():
-    return render_template('home.html', subtitle='Home Page', text='This is the home page')
-    
 @app.route("/about")
 def second_page():
     return render_template('about.html', subtitle='About us', text='This is the about page')
