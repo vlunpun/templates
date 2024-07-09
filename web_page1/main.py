@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 # Gets name of the .py file so Flask knows it's name
 app = Flask(__name__)                                                       # this gets the name of the file so Flask knows it's name
 proxied = FlaskBehindProxy(app)  
-app.config['SECRET_KEY'] = '131a00f696ccda7414d2354a43800ba8'
+app.config['SECRET_KEY'] = 'your_secret_key'
 
 # Configure database 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
